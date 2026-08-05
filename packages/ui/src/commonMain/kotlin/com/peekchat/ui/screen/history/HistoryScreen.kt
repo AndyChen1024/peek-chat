@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 /**
  * 历史记录页面。
@@ -17,7 +18,7 @@ fun HistoryScreen(
     onBack: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(16f)
+        modifier = Modifier.fillMaxSize().padding(16.dp)
     ) {
         // TODO: 从 ConversationRepository 加载列表
         // TODO: LazyColumn 展示 Conversation 卡片

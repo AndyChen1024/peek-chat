@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 /**
  * AI 分析报告页面。
@@ -17,7 +18,7 @@ fun AnalysisScreen(
     onBack: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(16f)
+        modifier = Modifier.fillMaxSize().padding(16.dp)
     ) {
         // TODO: 从 AnalysisRepository 加载 AnalysisReport
         // TODO: SummaryCard
