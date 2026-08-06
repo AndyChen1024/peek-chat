@@ -129,3 +129,14 @@ Run before committing:
 - When editing Kotlin, avoid `!!`; use safe calls or explicit null checks.
 - For Compose UI, always use `Dp` values for dimensions, never raw numbers.
 - Follow the Conventional Commits format defined above for all commits.
+
+## Docs map (progressive disclosure)
+
+This file is the map — keep it ~100 lines. Full reference documents live under `docs/`:
+
+| Document | Content | When to read |
+|----------|---------|--------------|
+| `docs/ARCHITECTURE.md` | Full architecture, tech stack, data models, MVP scope | Before any cross-module change |
+| `docs/HARNESS-ENGINEERING.md` | OpenAI's agent-first engineering methodology — the playbook this project follows | Understand **why** this project is structured this way |
+
+Rule: if you need deeper context on anything mentioned here, follow the pointer into `docs/` rather than guessing. This is the article's core pattern: **a map, not a 1,000-page manual.**
