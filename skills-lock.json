@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "harness-creator": {
+      "source": "walkinglabs/learn-harness-engineering",
+      "sourceType": "github",
+      "skillPath": "skills/harness-creator/SKILL.md",
+      "computedHash": "703331a042d7cbfc0f80409703c998e414b5a1da29fa67602e0d173c45abf573"
+    },
+    "harness-engineering": {
+      "source": "charlesanim/harness-engineering",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "c36e7b5d043f5fd360e2526332ed6c42acad378103c526e93733d4df0a270246"
+    },
+    "harness-engineering-playbook": {
+      "source": "broomva/harness-engineering-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "06e844a78c4e15d2ad7ce85aacd989c24931ad3c2c92a1655bbd7016706f1508"
+    },
+    "harness-engineering-zh": {
+      "source": "10xChengTu/harness-engineering",
+      "sourceType": "github",
+      "skillPath": "skills/harness-engineering-zh/SKILL.md",
+      "computedHash": "34925d504eccadb8ba5833e4715656a631bf97bf5ffda8e77092cadec8fb857f"
+    }
+  }
+}

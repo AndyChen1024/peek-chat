@@ -32,6 +32,13 @@ captures/
 
 # Claude Code (local settings)
 .claude/settings.local.json
+.claude/skills/
+
+# Agent skills (fetched by npx skills)
+.agents/
+
+# Temp / debugging data
+.tmp_ocr/
 
 # OS
 .DS_Store
