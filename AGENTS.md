@@ -130,13 +130,34 @@ Run before committing:
 - For Compose UI, always use `Dp` values for dimensions, never raw numbers.
 - Follow the Conventional Commits format defined above for all commits.
 
+## Workflow (Harness Engineering)
+
+**Every feature starts here. No code until the plan exists.**
+
+```
+docs/PRD.md → docs/ARCHITECTURE.md → 模块划分 → 任务拆解 → docs/plans/*.md
+```
+
+1. Confirm the feature exists in `docs/PRD.md` (or add it)
+2. Locate the responsible module in `docs/ARCHITECTURE.md`
+3. Break down into tasks in `docs/plans/<YYYY-MM-DD-feature.md>`
+4. **Update docs before changing code** — design decisions go to docs first
+
 ## Docs map (progressive disclosure)
 
 This file is the map — keep it ~100 lines. Full reference documents live under `docs/`:
 
 | Document | Content | When to read |
 |----------|---------|--------------|
-| `docs/ARCHITECTURE.md` | Full architecture, tech stack, data models, MVP scope | Before any cross-module change |
-| `docs/HARNESS-ENGINEERING.md` | OpenAI's agent-first engineering methodology — the playbook this project follows | Understand **why** this project is structured this way |
+| `docs/PRD.md` | Product requirements, user personas, core features, MVP scope | **Always first** — every feature starts here |
+| `docs/ARCHITECTURE.md` | Full architecture, tech stack, data models, module dependency flow | Before any cross-module change |
+| `docs/conventions.md` | Kotlin/Compose coding standards, naming, error handling, Git rules | Before writing any code |
+| `docs/testing.md` | Testing strategy, quality gates, agent test conventions | Before writing or modifying tests |
+| `docs/tech-debt.md` | Known technical debt items, severity, repayment plan | Before touching code with known debt |
+| `docs/HARNESS-ENGINEERING.md` | OpenAI's agent-first engineering methodology | Understand **why** this project is structured this way |
+| `docs/plans/` | Execution plans — task breakdowns per feature | Before implementing any feature |
+| `docs/design/COMPONENTS.md` | UI component specs (BubbleCard, cards, FloatOverlay, screens) | Before UI work |
+| `docs/design/DESIGN-TOKENS.md` | Design tokens (colors, typography, spacing) | Before UI work |
+| `docs/design/INTERACTION-MODEL.md` | FloatOverlay three-state UX spec | Before floating window work |
 
 Rule: if you need deeper context on anything mentioned here, follow the pointer into `docs/` rather than guessing. This is the article's core pattern: **a map, not a 1,000-page manual.**

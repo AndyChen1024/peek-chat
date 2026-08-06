@@ -151,17 +151,25 @@ peek-chat 从第一天起就遵循了这篇文章的核心模式：
 
 | 文章原则 | peek-chat 对应 |
 |---------|---------------|
-| AGENTS.md 是地图 | `AGENTS.md` ≈ 100行，指向 `docs/` |
-| 结构化 docs/ | `docs/ARCHITECTURE.md` + `docs/HARNESS-ENGINEERING.md` |
-| 渐进式披露 | AGENTS.md → ARCHITECTURE.md → 各包 README |
+| AGENTS.md 是地图 | `AGENTS.md` ≈ 120行，指向 `docs/` |
+| 结构化 docs/ | `docs/PRD.md` + `docs/ARCHITECTURE.md` + `docs/conventions.md` + `docs/testing.md` + `docs/HARNESS-ENGINEERING.md` |
+| 渐进式披露 | PRD.md → ARCHITECTURE.md → 模块 → 执行计划 |
 | 架构不变量 | 严格的包依赖方向（model ← 各包 ← ui ← apps） |
 | 边界验证 | Module dependency flow 明确上墙 |
 | 对智能体可读 | 全部知识在代码仓库内，无外部依赖 |
 | Provider-agnostic | AiProvider 接口隔绝实现，Harness 接入零侵入 |
+| 代码仓库 = 记录系统 | 完整 PRD + 架构 + 规范 + 测试策略 + 设计规格均在 docs/ 内 |
+| 熵与垃圾收集 | `docs/tech-debt.md` 追踪债务，偿还计划明确 |
+
+已完成：
+- [x] `docs/PRD.md` — 产品需求入口（2026-08-06）
+- [x] `docs/conventions.md` — 编码规范独立文档（2026-08-06）
+- [x] `docs/testing.md` — 测试策略文档（2026-08-06）
+- [x] `docs/plans/` — 执行计划目录（2026-08-06）
+- [x] `docs/tech-debt.md` — 技术债务追踪器（2026-08-06）
+- [x] `docs/design/` 文档纳入 AGENTS.md 地图（2026-08-06）
 
 待实现（按文章建议）：
-- [ ] `docs/plans/` — 执行计划作为一等工件
-- [ ] `docs/tech-debt.md` — 技术债务追踪器
 - [ ] doc-gardening 脚本 — 定期扫描过时文档
-- [ ] Golden rules 编码为 lint 规则
+- [ ] Golden rules 编码为 lint 规则（dependency direction validation）
 - [ ] 后台 Codex 任务自动发起重构 PR
