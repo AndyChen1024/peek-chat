@@ -17,7 +17,10 @@ data class OcrResult(
     val imageWidth: Int,
 
     /** 图片高度 (px) */
-    val imageHeight: Int
+    val imageHeight: Int,
+
+    /** OCR 引擎类型标识（"mlkit" / "paddleocr" / "vision"），用于排查问题 */
+    val engineType: String = "mlkit"
 )
 
 @Serializable
@@ -34,5 +37,8 @@ data class TextLine(
     val right: Int,
 
     /** bounding box 下边界 y 坐标 */
-    val bottom: Int
+    val bottom: Int,
+
+    /** OCR 识别置信度 (0.0–1.0) */
+    val confidence: Float = 1.0f
 )
