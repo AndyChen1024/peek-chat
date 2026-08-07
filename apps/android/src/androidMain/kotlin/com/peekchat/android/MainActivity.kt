@@ -2,6 +2,7 @@ package com.peekchat.android
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -9,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.peekchat.android.capture.ScreenshotCapture
 import com.peekchat.android.overlay.OverlayPermissionHelper
 import com.peekchat.android.overlay.OverlayService
+import com.peekchat.model.OcrResult
+import com.peekchat.ocr.MlKitOcrEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,6 +20,7 @@ import kotlinx.coroutines.withContext
 class MainActivity : ComponentActivity() {
 
     private lateinit var screenshotCapture: ScreenshotCapture
+    private val ocrEngine = MlKitOcrEngine()
     private val captureScope = CoroutineScope(Dispatchers.Main)
 
     // ── MediaProjection result handler ─────────────────────────────
@@ -34,7 +38,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     if (path != null) {
-                        // TODO(Phase 1): Trigger OCR on captured image
+                        // Run OCR on captured screenshot
+                        val ocrResult = withContext(Dispatchers.IO) {
+                            ocrEngine.recognize(path)
+                        }
+                        Log.i(TAG, "OCR complete: ${ocrResult.lines.size} lines, engine=${ocrResult.engineType}")
+                        // TODO(Phase 1): Pipe to AI analysis (DeepSeek API)
                     }
                 } catch (e: Exception) {
                     // TODO: Show error notification or toast
@@ -116,5 +125,9 @@ class MainActivity : ComponentActivity() {
         } else {
             startService(intent)
         }
+    }
+
+    companion object {
+        private const val TAG = "MainActivity"
     }
 }

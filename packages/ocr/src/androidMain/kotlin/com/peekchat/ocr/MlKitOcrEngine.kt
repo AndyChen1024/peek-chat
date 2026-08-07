@@ -2,9 +2,15 @@ package com.peekchat.ocr
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 import com.peekchat.model.OcrResult
 import com.peekchat.model.TextLine
 import java.io.File
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 /**
  * Android 平台 ML Kit Text Recognition v2 actual。
@@ -13,6 +19,10 @@ import java.io.File
  * 当实测识别率 <90% 时切换到 PaddleOcrEngine。
  */
 class MlKitOcrEngine : OcrEngine {
+
+    private val recognizer = TextRecognition.getClient(
+        ChineseTextRecognizerOptions.Builder().build()
+    )
 
     override suspend fun recognize(imagePath: String): OcrResult {
         val bitmap: Bitmap = BitmapFactory.decodeFile(imagePath)
@@ -24,29 +34,36 @@ class MlKitOcrEngine : OcrEngine {
                 engineType = "mlkit"
             )
 
-        // TODO: Integrate ML Kit Text Recognition v2
-        // val inputImage = InputImage.fromBitmap(bitmap, 0)
-        // val recognizer = TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
-        // val visionText = recognizer.process(inputImage).await()
-        // val lines = visionText.textBlocks.flatMap { block ->
-        //     block.lines.map { line ->
-        //         TextLine(
-        //             text = line.text,
-        //             left = line.boundingBox?.left ?: 0,
-        //             top = line.boundingBox?.top ?: 0,
-        //             right = line.boundingBox?.right ?: 0,
-        //             bottom = line.boundingBox?.bottom ?: 0,
-        //             confidence = line.confidence ?: 1.0f
-        //         )
-        //     }
-        // }
+        val inputImage = InputImage.fromBitmap(bitmap, 0)
 
-        return OcrResult(
-            imageId = File(imagePath).nameWithoutExtension,
-            lines = emptyList(),
-            imageWidth = bitmap.width,
-            imageHeight = bitmap.height,
-            engineType = "mlkit"
-        )
+        return suspendCancellableCoroutine { continuation ->
+            recognizer.process(inputImage)
+                .addOnSuccessListener { visionText ->
+                    val lines = visionText.textBlocks.flatMap { block ->
+                        block.lines.map { line ->
+                            TextLine(
+                                text = line.text,
+                                left = line.boundingBox?.left ?: 0,
+                                top = line.boundingBox?.top ?: 0,
+                                right = line.boundingBox?.right ?: 0,
+                                bottom = line.boundingBox?.bottom ?: 0,
+                                confidence = line.confidence ?: 1.0f
+                            )
+                        }
+                    }
+                    continuation.resume(
+                        OcrResult(
+                            imageId = File(imagePath).nameWithoutExtension,
+                            lines = lines,
+                            imageWidth = bitmap.width,
+                            imageHeight = bitmap.height,
+                            engineType = "mlkit"
+                        )
+                    )
+                }
+                .addOnFailureListener { e ->
+                    continuation.resumeWithException(e)
+                }
+        }
     }
 }
