@@ -1,30 +1,57 @@
 package com.peekchat.ui.screen.analysis
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.peekchat.model.AnalysisReport
+import com.peekchat.ui.component.DecisionCard
+import com.peekchat.ui.component.SentimentCard
+import com.peekchat.ui.component.SummaryCard
+import com.peekchat.ui.component.TodoCard
 
 /**
  * AI 分析报告页面。
- * 展示：对话摘要、待办列表、情绪指示、关键决策。
+ *
+ * Layout per Iris spec: SummaryCard → TodoCard → SentimentCard → DecisionCard,
+ * vertical scroll, 16dp page padding, 12dp card spacing.
  */
 @Composable
 fun AnalysisScreen(
-    conversationId: String,
+    report: AnalysisReport,
     onBack: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)
-    ) {
-        // TODO: 从 AnalysisRepository 加载 AnalysisReport
-        // TODO: SummaryCard
-        // TODO: TodoListCard
-        // TODO: SentimentIndicator
-        // TODO: DecisionListCard
-        Text("加载分析报告...")
+    Scaffold(
+        topBar = {
+            Text(
+                "分析报告",
+                style = androidx.compose.material3.MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SummaryCard(summary = report.summary)
+
+            TodoCard(todos = report.todos)
+
+            SentimentCard(sentiment = report.sentiment)
+
+            DecisionCard(decisions = report.decisions)
+        }
     }
 }
