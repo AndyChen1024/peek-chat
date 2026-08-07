@@ -72,10 +72,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Re-check overlay permission when returning from system settings.
-        // If granted and service not running, this is a no-op in the service itself
-        // (startService is idempotent).
-        if (OverlayPermissionHelper.isGranted(this)) {
+        // Only auto-start overlay if permission is granted and service not already running.
+        // startService is idempotent, but we check first to avoid multiple intent deliveries.
+        if (OverlayPermissionHelper.isGranted(this) && !OverlayService.isRunning) {
             startOverlayService()
         }
     }

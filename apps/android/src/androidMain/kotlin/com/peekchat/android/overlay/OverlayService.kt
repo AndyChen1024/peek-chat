@@ -40,6 +40,7 @@ class OverlayService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -61,8 +62,6 @@ class OverlayService : Service() {
         try {
             showPill()
         } catch (e: Exception) {
-            // Overlay may fail if permission not granted before start.
-            // User should re-grant via app permission flow.
             stopSelf()
             return START_NOT_STICKY
         }
@@ -70,6 +69,7 @@ class OverlayService : Service() {
     }
 
     override fun onDestroy() {
+        isRunning = false
         hidePill()
         super.onDestroy()
     }
@@ -80,6 +80,8 @@ class OverlayService : Service() {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun showPill() {
+        // Guard: if pill is already showing, don't add a second one
+        if (::pillView.isInitialized && (pillView.parent != null)) return
         val pill = FrameLayout(this).apply {
             layoutParams = FrameLayout.LayoutParams(
                 PILL_SIZE_DP.dpToPx(this@OverlayService),
@@ -258,6 +260,11 @@ class OverlayService : Service() {
     companion object {
         private const val CHANNEL_ID = "peekchat_overlay"
         private const val NOTIFICATION_ID = 1001
+
+        // Track whether the service is currently running (avoid duplicate pills)
+        @Volatile
+        var isRunning: Boolean = false
+            private set
 
         // Intent action: pill tapped → start capture flow
         const val ACTION_START_CAPTURE = "com.peekchat.android.START_CAPTURE"
