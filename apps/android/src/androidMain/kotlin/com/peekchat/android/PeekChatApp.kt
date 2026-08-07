@@ -42,6 +42,8 @@ import com.peekchat.designsystem.theme.Brand400
 import com.peekchat.designsystem.theme.Brand500
 import com.peekchat.designsystem.theme.Brand700
 import com.peekchat.designsystem.theme.PeekChatTheme
+import com.peekchat.model.AnalysisReport
+import com.peekchat.ui.screen.analysis.AnalysisScreen
 import com.peekchat.ui.screen.capture.CaptureScreen
 
 /**
@@ -58,17 +60,27 @@ import com.peekchat.ui.screen.capture.CaptureScreen
  */
 @Composable
 fun PeekChatApp(
-    onRequestOverlayPermission: (() -> Unit)? = null
+    onRequestOverlayPermission: (() -> Unit)? = null,
+    analysisReport: AnalysisReport? = null,
+    onDismissReport: () -> Unit = {}
 ) {
     PeekChatTheme(
         darkTheme = androidx.compose.foundation.isSystemInDarkTheme()
     ) {
-        AppContent(onRequestOverlayPermission = onRequestOverlayPermission)
+        AppContent(
+            onRequestOverlayPermission = onRequestOverlayPermission,
+            analysisReport = analysisReport,
+            onDismissReport = onDismissReport
+        )
     }
 }
 
 @Composable
-private fun AppContent(onRequestOverlayPermission: (() -> Unit)? = null) {
+private fun AppContent(
+    onRequestOverlayPermission: (() -> Unit)? = null,
+    analysisReport: AnalysisReport? = null,
+    onDismissReport: () -> Unit = {}
+) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE) }
 
@@ -97,6 +109,11 @@ private fun AppContent(onRequestOverlayPermission: (() -> Unit)? = null) {
             onGoToSettings = {
                 onRequestOverlayPermission?.invoke()
             }
+        )
+    } else if (analysisReport != null) {
+        AnalysisScreen(
+            report = analysisReport,
+            onBack = onDismissReport
         )
     } else {
         CaptureScreen(

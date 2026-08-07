@@ -7,10 +7,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.peekchat.ai.DeepSeekProvider
 import com.peekchat.android.capture.ScreenshotCapture
 import com.peekchat.android.overlay.OverlayPermissionHelper
 import com.peekchat.android.overlay.OverlayService
+import com.peekchat.model.AnalysisReport
 import com.peekchat.model.ChatMessage
 import com.peekchat.model.Conversation
 import com.peekchat.model.OcrResult
@@ -38,6 +42,9 @@ class MainActivity : ComponentActivity() {
         )
     }
     private val captureScope = CoroutineScope(Dispatchers.Main)
+
+    // Mutable state: AI analysis result drives navigation to AnalysisScreen
+    private var analysisReport by mutableStateOf<AnalysisReport?>(null)
 
     // ── MediaProjection result handler ─────────────────────────────
 
@@ -82,6 +89,7 @@ class MainActivity : ComponentActivity() {
                         result.fold(
                             onSuccess = { report ->
                                 Log.i(TAG, "AI: summary=${report.summary.take(60)}..., todos=${report.todos.size}, decisions=${report.decisions.size}")
+                                analysisReport = report
                             },
                             onFailure = { e ->
                                 Log.e(TAG, "AI analysis failed: ${e.message}", e)
@@ -115,7 +123,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PeekChatApp(
-                onRequestOverlayPermission = { requestOverlayPermission() }
+                onRequestOverlayPermission = { requestOverlayPermission() },
+                analysisReport = analysisReport,
+                onDismissReport = { analysisReport = null }
             )
         }
 
