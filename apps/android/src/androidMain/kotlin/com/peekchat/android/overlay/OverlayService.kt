@@ -163,11 +163,14 @@ class OverlayService : Service() {
     }
 
     private fun onPillTapped() {
-        // TODO(Phase 1): Start MediaProjection + auto-scroll capture
-        // 1. Request MediaProjection permission (startActivityForResult via Activity)
-        // 2. Start AccessibilityService for auto-scroll
-        // 3. Capture screenshots on each scroll
-        // 4. Transition to "睁眼" state (show progress ring)
+        // Launch MainActivity with capture action.
+        // MediaProjection permission must be requested from an Activity,
+        // so we delegate to MainActivity which handles the result flow.
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            action = ACTION_START_CAPTURE
+        }
+        startActivity(intent)
     }
 
     private fun snapToEdge() {
@@ -235,6 +238,9 @@ class OverlayService : Service() {
     companion object {
         private const val CHANNEL_ID = "peekchat_overlay"
         private const val NOTIFICATION_ID = 1001
+
+        // Intent action: pill tapped → start capture flow
+        const val ACTION_START_CAPTURE = "com.peekchat.android.START_CAPTURE"
 
         // Iris design spec: 44dp semi-transparent pill
         private const val PILL_SIZE_DP = 44
