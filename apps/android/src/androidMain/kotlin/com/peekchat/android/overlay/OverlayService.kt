@@ -41,11 +41,31 @@ class OverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        startForeground(NOTIFICATION_ID, createNotification())
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    createNotification(),
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, createNotification())
+            }
+        } catch (e: RuntimeException) {
+            // startForeground may fail if notification permission not yet granted.
+            // The service will still run; we retry in showPill if needed.
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        showPill()
+        try {
+            showPill()
+        } catch (e: Exception) {
+            // Overlay may fail if permission not granted before start.
+            // User should re-grant via app permission flow.
+            stopSelf()
+            return START_NOT_STICKY
+        }
         return START_STICKY
     }
 
