@@ -7,21 +7,23 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AnalysisReport(
-    val conversationId: String,
+    /** 对话标识（本地分配，非 AI 输出） */
+    val conversationId: String = "",
 
     /** 对话摘要 */
     val summary: String,
 
     /** 待办事项 */
-    val todos: List<TodoItem>,
+    val todos: List<TodoItem> = emptyList(),
 
     /** 情绪判断 */
-    val sentiment: Sentiment,
+    val sentiment: Sentiment = Sentiment("未知", emptyList(), emptyList()),
 
     /** 关键决策 */
-    val decisions: List<Decision>,
+    val decisions: List<Decision> = emptyList(),
 
-    val createdAt: Long
+    /** 创建时间戳（本地分配，非 AI 输出） */
+    val createdAt: Long = 0L
 )
 
 @Serializable

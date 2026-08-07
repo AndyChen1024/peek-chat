@@ -7,11 +7,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import com.peekchat.ai.DeepSeekProvider
 import com.peekchat.android.capture.ScreenshotCapture
 import com.peekchat.android.overlay.OverlayPermissionHelper
 import com.peekchat.android.overlay.OverlayService
+import com.peekchat.model.ChatMessage
+import com.peekchat.model.Conversation
 import com.peekchat.model.OcrResult
+import com.peekchat.model.Speaker
+import com.peekchat.ocr.BubbleClassifier
 import com.peekchat.ocr.MlKitOcrEngine
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,6 +28,15 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var screenshotCapture: ScreenshotCapture
     private val ocrEngine = MlKitOcrEngine()
+    private val bubbleClassifier = BubbleClassifier()
+    private val aiProvider by lazy {
+        // API key is read from BuildConfig (set via gradle property or env var).
+        // For local dev: add DEEPSEEK_API_KEY to ~/.gradle/gradle.properties
+        DeepSeekProvider(
+            httpClient = HttpClient(OkHttp),
+            apiKey = deepseekApiKey()
+        )
+    }
     private val captureScope = CoroutineScope(Dispatchers.Main)
 
     // ── MediaProjection result handler ─────────────────────────────
@@ -38,12 +54,39 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     if (path != null) {
-                        // Run OCR on captured screenshot
+                        // OCR
                         val ocrResult = withContext(Dispatchers.IO) {
                             ocrEngine.recognize(path)
                         }
-                        Log.i(TAG, "OCR complete: ${ocrResult.lines.size} lines, engine=${ocrResult.engineType}")
-                        // TODO(Phase 1): Pipe to AI analysis (DeepSeek API)
+                        Log.i(TAG, "OCR: ${ocrResult.lines.size} lines, engine=${ocrResult.engineType}")
+
+                        // Bubble classification
+                        val messages = ocrResult.lines.map { line ->
+                            val position = bubbleClassifier.classify(line, ocrResult.imageWidth)
+                            ChatMessage(
+                                speaker = when (position) {
+                                    com.peekchat.model.BubblePosition.LEFT -> Speaker.OTHER
+                                    com.peekchat.model.BubblePosition.RIGHT -> Speaker.SELF
+                                },
+                                content = line.text,
+                                bubblePosition = position
+                            )
+                        }
+
+                        // AI analysis
+                        val conversation = Conversation(
+                            id = ocrResult.imageId,
+                            messages = messages
+                        )
+                        val result = aiProvider.analyze(conversation)
+                        result.fold(
+                            onSuccess = { report ->
+                                Log.i(TAG, "AI: summary=${report.summary.take(60)}..., todos=${report.todos.size}, decisions=${report.decisions.size}")
+                            },
+                            onFailure = { e ->
+                                Log.e(TAG, "AI analysis failed: ${e.message}", e)
+                            }
+                        )
                     }
                 } catch (e: Exception) {
                     // TODO: Show error notification or toast
@@ -129,5 +172,15 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+
+        /**
+         * Read DeepSeek API key from system property or gradle property.
+         * Set via: ./gradlew -Ddeepseek.api.key=sk-xxx ... or add to gradle.properties.
+         */
+        private fun deepseekApiKey(): String {
+            return System.getProperty("deepseek.api.key")
+                ?: System.getenv("DEEPSEEK_API_KEY")
+                ?: "sk-placeholder" // Replace with your key
+        }
     }
 }

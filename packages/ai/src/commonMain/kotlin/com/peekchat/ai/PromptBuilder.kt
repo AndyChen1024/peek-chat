@@ -31,13 +31,15 @@ object PromptBuilder {
 聊天记录：
 $messagesText
 
-请严格按以下 JSON schema 格式输出（不要包含 markdown 标记）：
+请严格按以下 JSON schema 格式输出，用 BEGIN_JSON 和 END_JSON 包裹你的 JSON（不要包含 markdown 标记）：
+BEGIN_JSON
 {
   "summary": "...",
   "todos": [{ "content": "...", "assignee": "SELF|OTHER|UNKNOWN" }],
   "sentiment": { "overall": "...", "positive": ["..."], "negative": ["..."] },
   "decisions": [{ "content": "...", "participants": ["SELF", "OTHER"] }]
 }
+END_JSON
 """.trimIndent()
     }
 }
