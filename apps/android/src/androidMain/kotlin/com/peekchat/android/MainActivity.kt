@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import com.peekchat.android.capture.ScreenshotCapture
+import com.peekchat.android.overlay.OverlayPermissionHelper
 import com.peekchat.android.overlay.OverlayService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,8 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var screenshotCapture: ScreenshotCapture
     private val captureScope = CoroutineScope(Dispatchers.Main)
+
+    // ── MediaProjection result handler ─────────────────────────────
 
     private val mediaProjectionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -32,7 +35,6 @@ class MainActivity : ComponentActivity() {
                     }
                     if (path != null) {
                         // TODO(Phase 1): Trigger OCR on captured image
-                        // ocrEngine.recognize(path)
                     }
                 } catch (e: Exception) {
                     // TODO: Show error notification or toast
@@ -41,22 +43,49 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // ── Overlay permission result handler ──────────────────────────
+
+    private val overlayPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+        // User returned from system settings. Re-check and start overlay if granted.
+        if (OverlayPermissionHelper.isGranted(this)) {
+            startOverlayService()
+        }
+    }
+
+    // ── Lifecycle ──────────────────────────────────────────────────
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         screenshotCapture = ScreenshotCapture(this)
 
         setContent {
-            PeekChatApp()
+            PeekChatApp(
+                onRequestOverlayPermission = { requestOverlayPermission() }
+            )
         }
 
         handleIntent(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Re-check overlay permission when returning from system settings.
+        // If granted and service not running, this is a no-op in the service itself
+        // (startService is idempotent).
+        if (OverlayPermissionHelper.isGranted(this)) {
+            startOverlayService()
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)
     }
+
+    // ── Intent handling ────────────────────────────────────────────
 
     private fun handleIntent(intent: Intent?) {
         if (intent?.action == OverlayService.ACTION_START_CAPTURE) {
@@ -67,5 +96,26 @@ class MainActivity : ComponentActivity() {
     private fun startCapture() {
         val permissionIntent = screenshotCapture.createPermissionIntent()
         mediaProjectionLauncher.launch(permissionIntent)
+    }
+
+    // ── Overlay permission flow ────────────────────────────────────
+    // Atlas's 2-step: detect → guide card → system settings → return → start
+
+    private fun requestOverlayPermission() {
+        if (OverlayPermissionHelper.isGranted(this)) {
+            startOverlayService()
+        } else {
+            val intent = OverlayPermissionHelper.createSettingsIntent(this)
+            overlayPermissionLauncher.launch(intent)
+        }
+    }
+
+    private fun startOverlayService() {
+        val intent = Intent(this, OverlayService::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
     }
 }
