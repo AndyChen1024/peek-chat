@@ -35,6 +35,12 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "0.1.0"
+
+        // Read DeepSeek API key from gradle.properties
+        val deepseekApiKey = project.findProperty("deepseek.apikey") as? String
+            ?: System.getenv("DEEPSEEK_API_KEY")
+            ?: "sk-placeholder"
+        buildConfigField("String", "DEEPSEEK_API_KEY", "\"$deepseekApiKey\"")
     }
 
     buildTypes {

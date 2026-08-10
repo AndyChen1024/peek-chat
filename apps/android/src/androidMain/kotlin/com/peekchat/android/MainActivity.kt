@@ -34,11 +34,9 @@ class MainActivity : ComponentActivity() {
     private val ocrEngine = MlKitOcrEngine()
     private val bubbleClassifier = BubbleClassifier()
     private val aiProvider by lazy {
-        // API key is read from BuildConfig (set via gradle property or env var).
-        // For local dev: add DEEPSEEK_API_KEY to ~/.gradle/gradle.properties
         DeepSeekProvider(
             httpClient = HttpClient(OkHttp),
-            apiKey = deepseekApiKey()
+            apiKey = BuildConfig.DEEPSEEK_API_KEY
         )
     }
     private val captureScope = CoroutineScope(Dispatchers.Main)
@@ -182,15 +180,5 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
-
-        /**
-         * Read DeepSeek API key from system property or gradle property.
-         * Set via: ./gradlew -Ddeepseek.api.key=sk-xxx ... or add to gradle.properties.
-         */
-        private fun deepseekApiKey(): String {
-            return System.getProperty("deepseek.api.key")
-                ?: System.getenv("DEEPSEEK_API_KEY")
-                ?: "sk-placeholder" // Replace with your key
-        }
     }
 }
