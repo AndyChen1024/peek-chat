@@ -188,6 +188,7 @@ class OverlayService : Service() {
         // Launch MainActivity with capture action.
         // MediaProjection permission must be requested from an Activity,
         // so we delegate to MainActivity which handles the result flow.
+        android.util.Log.i("OverlayService", "Pill tapped — starting capture flow")
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             action = ACTION_START_CAPTURE

@@ -148,11 +148,16 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent?.action == OverlayService.ACTION_START_CAPTURE) {
-            startCapture()
+            // Post to next frame: Activity must be fully resumed before
+            // registerForActivityResult launcher can fire.
+            window?.decorView?.post {
+                startCapture()
+            }
         }
     }
 
     private fun startCapture() {
+        Log.i(TAG, "Starting MediaProjection capture flow")
         val permissionIntent = screenshotCapture.createPermissionIntent()
         mediaProjectionLauncher.launch(permissionIntent)
     }
