@@ -82,23 +82,23 @@ class OverlayService : Service() {
     private fun showPill() {
         // Guard: if pill is already showing, don't add a second one
         if (::pillView.isInitialized && (pillView.parent != null)) return
-        val pill = FrameLayout(this).apply {
-            layoutParams = FrameLayout.LayoutParams(
-                PILL_SIZE_DP.dpToPx(this@OverlayService),
-                PILL_SIZE_DP.dpToPx(this@OverlayService)
-            )
-            setBackgroundResource(android.R.color.transparent)
 
-            // Semi-transparent circle background
-            addView(View(this@OverlayService).apply {
-                val bgParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT
-                )
-                layoutParams = bgParams
-                // Brand700 (#475569) at ~60% alpha — Iris spec for 眯着态
-                setBackgroundColor(PILL_COLOR)
-            })
+        // Simple circular pill: a View with a colored circle background.
+        // Single View avoids FrameLayout sizing issues that cause
+        // zero-size collapse (0,0-0,0) and untappable pill.
+        val pill = View(this).apply {
+            val drawable = android.graphics.drawable.ShapeDrawable(
+                android.graphics.drawable.shapes.OvalShape()
+            ).apply {
+                paint.color = PILL_COLOR
+                intrinsicWidth = PILL_SIZE_DP.dpToPx(this@OverlayService)
+                intrinsicHeight = PILL_SIZE_DP.dpToPx(this@OverlayService)
+            }
+            background = drawable
+
+            setOnClickListener {
+                onPillTapped()
+            }
         }
 
         pillView = pill
