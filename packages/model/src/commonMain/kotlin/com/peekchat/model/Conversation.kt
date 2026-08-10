@@ -11,8 +11,8 @@ data class Conversation(
     val messages: List<ChatMessage>,
 
     /** 来源截图数量 */
-    val imageCount: Int,
+    val imageCount: Int = 1,
 
     /** 创建时间 (epoch millis) */
-    val createdAt: Long
+    val createdAt: Long = 0L
 )

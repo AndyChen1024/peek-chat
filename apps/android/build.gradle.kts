@@ -18,9 +18,11 @@ kotlin {
         androidMain.dependencies {
             implementation(projects.packages.ui)
             implementation(projects.packages.data)
+            implementation(projects.packages.ai)
             implementation(projects.packages.designsystem)
             implementation(libs.activity.compose)
             implementation(libs.core.ktx)
+            implementation(libs.ktor.client.okhttp)
         }
     }
 }
@@ -56,5 +58,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
