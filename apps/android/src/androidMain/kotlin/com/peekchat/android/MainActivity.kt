@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.peekchat.ai.DeepSeekProvider
+import com.peekchat.android.capture.MediaProjectionService
 import com.peekchat.android.capture.ScreenshotCapture
 import com.peekchat.android.overlay.OverlayPermissionHelper
 import com.peekchat.android.overlay.OverlayService
@@ -158,6 +159,14 @@ class MainActivity : ComponentActivity() {
 
     private fun startCapture() {
         Log.i(TAG, "Starting MediaProjection capture flow")
+        // Android 14+ requires the mediaProjection foreground service to be running
+        // before getMediaProjection() — start it first.
+        val serviceIntent = Intent(this, MediaProjectionService::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
         val permissionIntent = screenshotCapture.createPermissionIntent()
         mediaProjectionLauncher.launch(permissionIntent)
     }

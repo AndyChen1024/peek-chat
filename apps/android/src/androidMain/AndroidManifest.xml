@@ -28,5 +28,10 @@
             android:name="com.peekchat.android.overlay.OverlayService"
             android:exported="false"
             android:foregroundServiceType="specialUse|mediaProjection" />
+
+        <service
+            android:name="com.peekchat.android.capture.MediaProjectionService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
     </application>
 </manifest>
