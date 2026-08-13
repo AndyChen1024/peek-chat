@@ -95,7 +95,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 } catch (e: Exception) {
-                    // TODO: Show error notification or toast
+                    Log.e(TAG, "Capture pipeline failed: ${e.message}", e)
                 }
             }
         }
