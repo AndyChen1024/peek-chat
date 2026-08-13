@@ -104,9 +104,9 @@ class MainActivity : ComponentActivity() {
                         )
                         isCapturing = false
                         if (succeeded) {
-                            // Hide analyzing panel + auto return to report.
+                            // Hide analyzing panel; report renders via analysisReport
+                            // state change on the already-foreground activity.
                             sendOverlayAction(OverlayService.ACTION_HIDE_PANEL)
-                            bringToForeground()
                         } else {
                             // Show failure retry panel; stay (do not auto-return).
                             sendOverlayAction(OverlayService.ACTION_SHOW_ANALYZE_FAILED)
