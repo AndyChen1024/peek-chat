@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -38,20 +39,25 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
-        // Read DeepSeek API key from gradle.properties
-        val deepseekApiKey = project.findProperty("deepseek.apikey") as? String
-            ?: System.getenv("DEEPSEEK_API_KEY")
-            ?: "sk-placeholder"
+        // Read DeepSeek config from local.properties (private, NEVER committed).
+        // Fallback to env var, then placeholder. local.properties is gitignored.
+        val localProps = Properties()
+        val localFile = rootProject.file("local.properties")
+        if (localFile.exists()) {
+            localFile.inputStream().use { localProps.load(it) }
+        }
+        fun localOrEnv(key: String, envKey: String, default: String): String {
+            return localProps.getProperty(key)
+                ?: System.getenv(envKey)
+                ?: default
+        }
+        val deepseekApiKey = localOrEnv("deepseek.apikey", "DEEPSEEK_API_KEY", "sk-placeholder")
         buildConfigField("String", "DEEPSEEK_API_KEY", "\"$deepseekApiKey\"")
 
-        // Read DeepSeek API base URL from gradle.properties (default: official api.deepseek.com)
-        val deepseekBaseUrl = project.findProperty("deepseek.baseurl") as? String
-            ?: "https://api.deepseek.com"
+        val deepseekBaseUrl = localOrEnv("deepseek.baseurl", "DEEPSEEK_BASE_URL", "https://api.deepseek.com")
         buildConfigField("String", "DEEPSEEK_BASE_URL", "\"$deepseekBaseUrl\"")
 
-        // Read DeepSeek model name (default deepseek-chat)
-        val deepseekModel = project.findProperty("deepseek.model") as? String
-            ?: "deepseek-chat"
+        val deepseekModel = localOrEnv("deepseek.model", "DEEPSEEK_MODEL", "deepseek-chat")
         buildConfigField("String", "DEEPSEEK_MODEL", "\"$deepseekModel\"")
     }
 
