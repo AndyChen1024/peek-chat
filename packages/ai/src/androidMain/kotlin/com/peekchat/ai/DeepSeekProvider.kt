@@ -29,7 +29,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
  */
 class DeepSeekProvider(
     private val apiKey: String,
-    private val baseUrl: String = "https://api.deepseek.com"
+    private val baseUrl: String = "https://api.deepseek.com/v1"
 ) : AiProvider {
 
     private val json = Json {
@@ -47,7 +47,7 @@ class DeepSeekProvider(
         return try {
             val prompt = PromptBuilder.build(conversation)
 
-            val response = httpClient.post("$baseUrl/v1/chat/completions") {
+            val response = httpClient.post("$baseUrl/chat/completions") {
                 contentType(ContentType.Application.Json)
                 headers {
                     append("Authorization", "Bearer $apiKey")

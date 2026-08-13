@@ -43,6 +43,11 @@ android {
             ?: System.getenv("DEEPSEEK_API_KEY")
             ?: "sk-placeholder"
         buildConfigField("String", "DEEPSEEK_API_KEY", "\"$deepseekApiKey\"")
+
+        // Read DeepSeek API base URL from gradle.properties (default: official api.deepseek.com)
+        val deepseekBaseUrl = project.findProperty("deepseek.baseurl") as? String
+            ?: "https://api.deepseek.com"
+        buildConfigField("String", "DEEPSEEK_BASE_URL", "\"$deepseekBaseUrl\"")
     }
 
     buildTypes {

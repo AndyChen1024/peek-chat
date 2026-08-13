@@ -34,7 +34,8 @@ class MainActivity : ComponentActivity() {
     private val bubbleClassifier = BubbleClassifier()
     private val aiProvider by lazy {
         DeepSeekProvider(
-            apiKey = BuildConfig.DEEPSEEK_API_KEY
+            apiKey = BuildConfig.DEEPSEEK_API_KEY,
+            baseUrl = BuildConfig.DEEPSEEK_BASE_URL
         )
     }
     private val captureScope = CoroutineScope(Dispatchers.Main)
