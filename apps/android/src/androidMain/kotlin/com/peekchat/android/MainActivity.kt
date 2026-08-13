@@ -45,6 +45,9 @@ class MainActivity : ComponentActivity() {
     // Mutable state: AI analysis result drives navigation to AnalysisScreen
     private var analysisReport by mutableStateOf<AnalysisReport?>(null)
 
+    // Capturing indicator
+    private var isCapturing by mutableStateOf(false)
+
     // ── MediaProjection result handler ─────────────────────────────
 
     private val mediaProjectionLauncher = registerForActivityResult(
@@ -53,6 +56,7 @@ class MainActivity : ComponentActivity() {
         if (result.resultCode == RESULT_OK) {
             captureScope.launch {
                 try {
+                    isCapturing = true
                     val path = withContext(Dispatchers.IO) {
                         screenshotCapture.capture(
                             resultCode = result.resultCode,
@@ -96,8 +100,13 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+                    isCapturing = false
+                    // Bring app to foreground to show the report/result.
+                    bringToForeground()
                 } catch (e: Exception) {
+                    isCapturing = false
                     PeekLog.error(TAG, "Capture pipeline failed: ${e.message}", e)
+                    bringToForeground()
                 }
             }
         }
@@ -193,6 +202,17 @@ class MainActivity : ComponentActivity() {
             startForegroundService(intent)
         } else {
             startService(intent)
+        }
+    }
+
+    private fun bringToForeground() {
+        try {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            PeekLog.error(TAG, "Failed to bring app to foreground", e)
         }
     }
 
