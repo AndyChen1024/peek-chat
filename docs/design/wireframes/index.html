@@ -758,5 +758,54 @@
   </div>
 </div>
 
+<!-- ==================== PERMISSION GUIDE ==================== -->
+<div class="section">
+  <div class="section-header">
+    <h2>浮窗权限引导 — 首次体验</h2>
+    <span class="tag">New — 方案 A</span>
+  </div>
+
+  <div class="phone-grid">
+    <!-- Permission Guide Dialog -->
+    <div>
+      <div class="phone">
+        <div class="phone-status-bar"><span>9:41</span><span>眯聊</span><span></span></div>
+        <div class="report-page" style="display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);">
+          <div style="background:var(--card);border-radius:var(--radius);padding:24px 20px;text-align:center;width:240px;box-shadow:var(--shadow-md);">
+            <div style="font-size:40px;margin-bottom:12px;">💬</div>
+            <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.4;">在微信上面放一个小圆点</div>
+            <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px;">点一下就能记录这段对话</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;line-height:1.5;">眯聊需要在其他应用上层显示浮窗，系统要求你手动开启一次</div>
+            <div style="background:var(--slate-dark);color:#fff;border-radius:20px;padding:10px 0;font-size:14px;font-weight:600;margin-bottom:8px;">去开启</div>
+            <div style="font-size:12px;color:var(--text-muted);">以后再说</div>
+          </div>
+        </div>
+      </div>
+      <p class="phone-label">引导卡片（Modal Dialog）<br><span style="font-weight:400;color:var(--text-muted)">场景化文案 + 预览插图，降低权限流失率</span></p>
+    </div>
+
+    <!-- Denied Fallback Page -->
+    <div>
+      <div class="phone">
+        <div class="phone-status-bar"><span>9:41</span><span>眯聊</span><span></span></div>
+        <div class="report-page" style="min-height:400px;">
+          <div class="report-header">← 眯聊</div>
+          <div class="report-body" style="align-items:center;text-align:center;">
+            <div style="font-size:36px;margin:12px 0 8px;opacity:.5;">🔇</div>
+            <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">浮窗采集功能未开启</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:20px;line-height:1.5;">你可以手动导入微信截图，<br>或在设置中开启浮窗权限</div>
+            <div style="background:var(--slate-dark);color:#fff;border-radius:20px;padding:10px 0;font-size:14px;font-weight:600;width:100%;margin-bottom:8px;">从相册选择截图</div>
+            <div style="border:1px solid var(--slate-dark);color:var(--slate-dark);border-radius:20px;padding:10px 0;font-size:14px;width:100%;margin-bottom:20px;">开启浮窗权限</div>
+            <hr style="width:100%;border:none;border-top:1px solid var(--card-border);margin-bottom:12px;">
+            <div style="font-size:12px;color:var(--text-muted);align-self:flex-start;margin-bottom:8px;">历史记录</div>
+            <div style="width:100%;text-align:left;font-size:12px;color:var(--text-muted);">暂无记录</div>
+          </div>
+        </div>
+      </div>
+      <p class="phone-label">降级页面（权限被拒后）<br><span style="font-weight:400;color:var(--text-muted)">手动导入入口 + 重新授权按钮 + 历史记录</span></p>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

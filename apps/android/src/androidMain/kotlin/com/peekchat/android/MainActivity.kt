@@ -60,11 +60,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     if (path != null) {
+                        PeekLog.log(TAG, "Screenshot captured: $path")
                         // OCR
                         val ocrResult = withContext(Dispatchers.IO) {
                             ocrEngine.recognize(path)
                         }
-                        Log.i(TAG, "OCR: ${ocrResult.lines.size} lines, engine=${ocrResult.engineType}")
+                        PeekLog.log(TAG, "OCR: ${ocrResult.lines.size} lines, engine=${ocrResult.engineType}")
 
                         // Bubble classification
                         val messages = ocrResult.lines.map { line ->
@@ -87,16 +88,16 @@ class MainActivity : ComponentActivity() {
                         val result = aiProvider.analyze(conversation)
                         result.fold(
                             onSuccess = { report ->
-                                Log.i(TAG, "AI: summary=${report.summary.take(60)}..., todos=${report.todos.size}, decisions=${report.decisions.size}")
+                                PeekLog.log(TAG, "AI: summary=${report.summary.take(60)}..., todos=${report.todos.size}, decisions=${report.decisions.size}")
                                 analysisReport = report
                             },
                             onFailure = { e ->
-                                Log.e(TAG, "AI analysis failed: ${e.message}", e)
+                                PeekLog.error(TAG, "AI analysis failed: ${e.message}", e)
                             }
                         )
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Capture pipeline failed: ${e.message}", e)
+                    PeekLog.error(TAG, "Capture pipeline failed: ${e.message}", e)
                 }
             }
         }
@@ -118,11 +119,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        PeekLog.init(this)
+        PeekLog.log(TAG, "MainActivity created")
         screenshotCapture = ScreenshotCapture(this)
 
         setContent {
             PeekChatApp(
                 onRequestOverlayPermission = { requestOverlayPermission() },
+                onShareLog = { shareLog() },
                 analysisReport = analysisReport,
                 onDismissReport = { analysisReport = null }
             )
@@ -158,7 +162,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startCapture() {
-        Log.i(TAG, "Starting MediaProjection capture flow")
+        PeekLog.log(TAG, "Starting MediaProjection capture flow")
         // Android 14+ requires the mediaProjection foreground service to be running
         // before getMediaProjection() — start it first.
         val serviceIntent = Intent(this, MediaProjectionService::class.java)
@@ -189,6 +193,29 @@ class MainActivity : ComponentActivity() {
             startForegroundService(intent)
         } else {
             startService(intent)
+        }
+    }
+
+    private fun shareLog() {
+        val file = PeekLog.getLogFile()
+        if (file == null || !file.exists()) {
+            PeekLog.log(TAG, "No log file to share")
+            return
+        }
+        try {
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                this,
+                "$packageName.fileprovider",
+                file
+            )
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(shareIntent, "分享日志"))
+        } catch (e: Exception) {
+            PeekLog.error(TAG, "Failed to share log", e)
         }
     }
 

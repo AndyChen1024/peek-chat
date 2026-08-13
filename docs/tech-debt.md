@@ -43,7 +43,7 @@
 |----|------|------|------|---------|------|
 | TD-006 | DESIGN_NOTES.md 缺失 | 各 `packages/*/` | Agent 跨会话可能重新做设计决策 | 2026-08-06 | OPEN |
 | TD-007 | doc-gardening 脚本缺失 | — | 文档可能随代码演变而过时 | 2026-08-06 | OPEN |
-| TD-008 | AGENTS.md 未列出 `docs/design/` 下的设计文档 | `AGENTS.md` | Agent 可能不知道组件/交互规格文档存在 | 2026-08-06 | OPEN |
+| TD-008 | AGENTS.md 未列出 `docs/design/` 下的设计文档 | `AGENTS.md` | Agent 可能不知道组件/交互规格文档存在 | 2026-08-06 | RESOLVED |
 
 ---
 

@@ -61,6 +61,7 @@ import com.peekchat.ui.screen.capture.CaptureScreen
 @Composable
 fun PeekChatApp(
     onRequestOverlayPermission: (() -> Unit)? = null,
+    onShareLog: (() -> Unit)? = null,
     analysisReport: AnalysisReport? = null,
     onDismissReport: () -> Unit = {}
 ) {
@@ -69,6 +70,7 @@ fun PeekChatApp(
     ) {
         AppContent(
             onRequestOverlayPermission = onRequestOverlayPermission,
+            onShareLog = onShareLog,
             analysisReport = analysisReport,
             onDismissReport = onDismissReport
         )
@@ -78,6 +80,7 @@ fun PeekChatApp(
 @Composable
 private fun AppContent(
     onRequestOverlayPermission: (() -> Unit)? = null,
+    onShareLog: (() -> Unit)? = null,
     analysisReport: AnalysisReport? = null,
     onDismissReport: () -> Unit = {}
 ) {
@@ -116,10 +119,27 @@ private fun AppContent(
             onBack = onDismissReport
         )
     } else {
-        CaptureScreen(
-            onStartAnalysis = { /* TODO */ },
-            onViewHistory = { /* TODO */ }
-        )
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            CaptureScreen(
+                onStartAnalysis = { /* TODO */ },
+                onViewHistory = { /* TODO */ }
+            )
+            if (onShareLog != null) {
+                androidx.compose.material3.TextButton(
+                    onClick = onShareLog,
+                    modifier = Modifier
+                        .align(androidx.compose.ui.Alignment.BottomCenter)
+                        .padding(16.dp)
+                ) {
+                    androidx.compose.material3.Text(
+                        "导出日志",
+                        color = Brand400
+                    )
+                }
+            }
+        }
     }
 }
 

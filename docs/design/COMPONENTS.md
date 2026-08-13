@@ -17,6 +17,8 @@
 | ConversationCard | `ui/component/ConversationCard.kt` | 历史记录列表项 | 🔲 待实现 |
 | PeekChatScaffold | `designsystem/component/PeekChatScaffold.kt` | 页面骨架 | 🔲 待实现 |
 | LoadingIndicator | `designsystem/component/LoadingIndicator.kt` | 加载指示器 | 🔲 待实现 |
+| PermissionGuideDialog | `ui/component/PermissionGuideDialog.kt` | 浮窗权限首次引导弹窗 | 🔲 待实现 |
+| DeniedFallbackScreen | `ui/screen/fallback/DeniedFallbackScreen.kt` | 权限未开启降级页面 | 🔲 待实现 |
 | FloatOverlay | `apps/android/` | 浮窗三态组件 | 🔲 待实现 |
 
 ---
@@ -169,6 +171,42 @@ Card(...) {
 - 缩略图 item：aspectRatio 1:1，选中态蓝色边框
 - "开始分析"主按钮（slate-dark 背景，圆角 pill）
 - "查看历史记录"次按钮（outlined）
+
+---
+
+## PermissionGuideDialog
+
+**用途**: 首次启动时引导用户开启浮窗权限。
+
+详见 `PERMISSION-GUIDE.md`。
+
+| 属性 | 规格 |
+|------|------|
+| 布局 | 居中 Modal Card: 插图 → 主标题 → 副标题 → 主按钮 → 次文字按钮 |
+| 卡片 | surface 背景，radius-md，shadow-md |
+| 插图 | 微信聊天界面 + 屏幕边缘浮窗 pill 预览（场景化展示） |
+| 主标题 | "在微信上面放一个小圆点，点一下就能记录这段对话"，18px/600 |
+| 副标题 | "眯聊需要在其他应用上层显示浮窗，系统要求你手动开启一次"，13px/400，text-secondary |
+| 主按钮 | "去开启"，brand-700 bg，white text，radius-full |
+| 次按钮 | "以后再说"，text-secondary 文字链接，无背景 |
+
+---
+
+## DeniedFallbackScreen
+
+**用途**: 用户拒绝浮窗权限后的降级页面，提供手动导入入口。
+
+详见 `PERMISSION-GUIDE.md`。
+
+| 属性 | 规格 |
+|------|------|
+| 布局 | Scaffold: 图标 + 标题 + 说明 + 双按钮 + 分割线 + 历史列表 |
+| 图标 | 浮窗禁用态插画（灰色 pill + X） |
+| 标题 | "浮窗采集功能未开启"，18px/600 |
+| 说明 | "你可以手动导入微信截图，或在设置中开启浮窗权限"，13px/400 |
+| 主按钮 | "从相册选择截图"，brand-700 bg，white text，radius-full |
+| 次按钮 | "开启浮窗权限"，outlined，brand-700 描边，radius-full |
+| 历史列表 | 分割线 + "历史记录" + LazyColumn
 
 ### AnalysisScreen
 - SummaryCard → TodoCard → SentimentCard → DecisionCard 垂直排列
