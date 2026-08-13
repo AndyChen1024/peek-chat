@@ -91,25 +91,31 @@ class MainActivity : ComponentActivity() {
                             messages = messages
                         )
                         val result = aiProvider.analyze(conversation)
+                        var succeeded = false
                         result.fold(
                             onSuccess = { report ->
                                 PeekLog.log(TAG, "AI: summary=${report.summary.take(60)}..., todos=${report.todos.size}, decisions=${report.decisions.size}")
                                 analysisReport = report
+                                succeeded = true
                             },
                             onFailure = { e ->
                                 PeekLog.error(TAG, "AI analysis failed: ${e.message}", e)
                             }
                         )
+                        isCapturing = false
+                        if (succeeded) {
+                            // Hide analyzing panel + auto return to report.
+                            sendOverlayAction(OverlayService.ACTION_HIDE_PANEL)
+                            bringToForeground()
+                        } else {
+                            // Show failure retry panel; stay (do not auto-return).
+                            sendOverlayAction(OverlayService.ACTION_SHOW_ANALYZE_FAILED)
+                        }
                     }
-                    isCapturing = false
-                    // Hide analyzing panel + bring app to foreground to show report.
-                    sendOverlayAction(OverlayService.ACTION_HIDE_PANEL)
-                    bringToForeground()
                 } catch (e: Exception) {
                     isCapturing = false
-                    sendOverlayAction(OverlayService.ACTION_HIDE_PANEL)
+                    sendOverlayAction(OverlayService.ACTION_SHOW_ANALYZE_FAILED)
                     PeekLog.error(TAG, "Capture pipeline failed: ${e.message}", e)
-                    bringToForeground()
                 }
             }
         }
@@ -178,6 +184,11 @@ class MainActivity : ComponentActivity() {
                 // that just returns to app to show the report.
                 PeekLog.log(TAG, "Stop capture → show report")
                 bringToForeground()
+            }
+            OverlayService.ACTION_RETRY_ANALYSIS -> {
+                // Re-run the last capture+analysis. For now, re-trigger start.
+                PeekLog.log(TAG, "Retry analysis")
+                window?.decorView?.post { startCapture() }
             }
         }
     }

@@ -21,6 +21,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import com.peekchat.android.MainActivity
@@ -71,6 +72,9 @@ class OverlayService : Service() {
             }
             ACTION_SHOW_ANALYZING -> {
                 showAnalyzingPanel()
+            }
+            ACTION_SHOW_ANALYZE_FAILED -> {
+                showAnalyzeFailedPanel()
             }
             ACTION_HIDE_PANEL -> {
                 hidePanel()
@@ -233,20 +237,31 @@ class OverlayService : Service() {
                 cornerRadius = 16.dpToPx(this@OverlayService).toFloat()
             }
 
+            // Circular progress ring (Iris spec: no percentage)
+            addView(ProgressBar(this@OverlayService).apply {
+                isIndeterminate = true
+                val lp = LinearLayout.LayoutParams(
+                    48.dpToPx(this@OverlayService),
+                    48.dpToPx(this@OverlayService)
+                ).apply { gravity = Gravity.CENTER_HORIZONTAL }
+                layoutParams = lp
+            })
+
             // Status text
             addView(TextView(this@OverlayService).apply {
                 text = "采集中…"
                 textSize = 14f
+                gravity = Gravity.CENTER
                 setTextColor(Color.parseColor("#475569"))
             })
 
-            // Stop button (outlined brand-700)
+            // Stop button (outlined brand-700 pill)
             addView(Button(this@OverlayService).apply {
                 text = "停止"
                 setBackgroundColor(Color.TRANSPARENT)
                 setTextColor(Color.parseColor("#475569"))
                 val lp = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply { topMargin = 8.dpToPx(this@OverlayService) }
                 layoutParams = lp
@@ -276,9 +291,20 @@ class OverlayService : Service() {
                 cornerRadius = 16.dpToPx(this@OverlayService).toFloat()
             }
 
+            // Circular progress ring
+            addView(ProgressBar(this@OverlayService).apply {
+                isIndeterminate = true
+                val lp = LinearLayout.LayoutParams(
+                    48.dpToPx(this@OverlayService),
+                    48.dpToPx(this@OverlayService)
+                ).apply { gravity = Gravity.CENTER_HORIZONTAL }
+                layoutParams = lp
+            })
+
             addView(TextView(this@OverlayService).apply {
                 text = "正在分析对话…"
                 textSize = 14f
+                gravity = Gravity.CENTER
                 setTextColor(Color.parseColor("#475569"))
             })
         }
@@ -287,6 +313,59 @@ class OverlayService : Service() {
 
         panelLayoutParams = newPanelLayoutParams()
         windowManager.addView(panel, panelLayoutParams)
+    }
+
+    private fun showAnalyzeFailedPanel() {
+        hidePanel()
+
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(
+                PANEL_PADDING_DP.dpToPx(this@OverlayService),
+                PANEL_PADDING_DP.dpToPx(this@OverlayService),
+                PANEL_PADDING_DP.dpToPx(this@OverlayService),
+                PANEL_PADDING_DP.dpToPx(this@OverlayService)
+            )
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                cornerRadius = 16.dpToPx(this@OverlayService).toFloat()
+            }
+
+            addView(TextView(this@OverlayService).apply {
+                text = "分析失败"
+                textSize = 14f
+                gravity = Gravity.CENTER
+                setTextColor(Color.parseColor("#F97316"))
+            })
+
+            addView(Button(this@OverlayService).apply {
+                text = "重试"
+                setBackgroundColor(Color.parseColor("#475569"))
+                setTextColor(Color.WHITE)
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = 8.dpToPx(this@OverlayService) }
+                layoutParams = lp
+                setOnClickListener { onRetryAnalysis() }
+            })
+        }
+
+        panelView = panel
+
+        panelLayoutParams = newPanelLayoutParams()
+        windowManager.addView(panel, panelLayoutParams)
+    }
+
+    private fun onRetryAnalysis() {
+        // Re-run the capture pipeline (re-trigger start capture from phone state).
+        hidePanel()
+        android.util.Log.i("OverlayService", "重试 → re-trigger analysis")
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            action = ACTION_RETRY_ANALYSIS
+        }
+        startActivity(intent)
     }
 
     private fun newPanelLayoutParams(): WindowManager.LayoutParams {
@@ -454,8 +533,10 @@ class OverlayService : Service() {
 
         const val ACTION_START_CAPTURE = "com.peekchat.android.START_CAPTURE"
         const val ACTION_STOP_CAPTURE = "com.peekchat.android.STOP_CAPTURE"
+        const val ACTION_RETRY_ANALYSIS = "com.peekchat.android.RETRY_ANALYSIS"
         const val ACTION_SHOW_CAPTURING = "com.peekchat.android.SHOW_CAPTURING"
         const val ACTION_SHOW_ANALYZING = "com.peekchat.android.SHOW_ANALYZING"
+        const val ACTION_SHOW_ANALYZE_FAILED = "com.peekchat.android.SHOW_ANALYZE_FAILED"
         const val ACTION_HIDE_PANEL = "com.peekchat.android.HIDE_PANEL"
 
         private const val PILL_SIZE_DP = 44
