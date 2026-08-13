@@ -87,6 +87,14 @@ class ScreenshotCapture(context: Context) {
             return@suspendCancellableCoroutine
         }
 
+        // Android 14+ requires registering a callback before capture so the
+        // system can manage resources in response to MediaProjection states.
+        projection.registerCallback(object : MediaProjection.Callback() {
+            override fun onStop() {
+                projection.unregisterCallback(this)
+            }
+        }, Handler(Looper.getMainLooper()))
+
         outputDir.mkdirs()
 
         val imageReader = ImageReader.newInstance(
