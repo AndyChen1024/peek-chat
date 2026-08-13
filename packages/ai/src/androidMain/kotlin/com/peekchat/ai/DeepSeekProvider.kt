@@ -29,7 +29,8 @@ import kotlinx.serialization.json.decodeFromJsonElement
  */
 class DeepSeekProvider(
     private val apiKey: String,
-    private val baseUrl: String = "https://api.deepseek.com/v1"
+    private val baseUrl: String = "https://api.deepseek.com/v1",
+    private val model: String = "deepseek-chat"
 ) : AiProvider {
 
     private val json = Json {
@@ -53,7 +54,7 @@ class DeepSeekProvider(
                     append("Authorization", "Bearer $apiKey")
                 }
                 setBody(ChatCompletionRequest(
-                    model = "deepseek-chat",
+                    model = model,
                     messages = listOf(
                         Message("system", "你是一个聊天记录分析助手。请只输出 JSON，不要包含其他内容。"),
                         Message("user", prompt)

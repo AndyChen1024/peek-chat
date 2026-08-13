@@ -48,6 +48,11 @@ android {
         val deepseekBaseUrl = project.findProperty("deepseek.baseurl") as? String
             ?: "https://api.deepseek.com"
         buildConfigField("String", "DEEPSEEK_BASE_URL", "\"$deepseekBaseUrl\"")
+
+        // Read DeepSeek model name (default deepseek-chat)
+        val deepseekModel = project.findProperty("deepseek.model") as? String
+            ?: "deepseek-chat"
+        buildConfigField("String", "DEEPSEEK_MODEL", "\"$deepseekModel\"")
     }
 
     buildTypes {

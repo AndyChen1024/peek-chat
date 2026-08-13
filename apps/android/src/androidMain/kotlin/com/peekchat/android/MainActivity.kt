@@ -35,7 +35,8 @@ class MainActivity : ComponentActivity() {
     private val aiProvider by lazy {
         DeepSeekProvider(
             apiKey = BuildConfig.DEEPSEEK_API_KEY,
-            baseUrl = BuildConfig.DEEPSEEK_BASE_URL
+            baseUrl = BuildConfig.DEEPSEEK_BASE_URL,
+            model = BuildConfig.DEEPSEEK_MODEL
         )
     }
     private val captureScope = CoroutineScope(Dispatchers.Main)
