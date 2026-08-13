@@ -47,7 +47,8 @@ class OverlayService : Service() {
                 startForeground(
                     NOTIFICATION_ID,
                     createNotification(),
-                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE or
+                            android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
                 )
             } else {
                 startForeground(NOTIFICATION_ID, createNotification())
