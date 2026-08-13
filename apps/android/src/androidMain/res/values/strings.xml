@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_description">眯聊需要无障碍权限来自动滚动微信对话，用于连续采集聊天截图</string>
+</resources>
