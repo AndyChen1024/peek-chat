@@ -67,8 +67,13 @@ class OverlayService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_SHOW_CAPTURING -> {
-                // MediaProjection permission granted; show capturing panel.
                 showCapturingPanel()
+            }
+            ACTION_SHOW_ANALYZING -> {
+                showAnalyzingPanel()
+            }
+            ACTION_HIDE_PANEL -> {
+                hidePanel()
             }
             else -> {
                 try {
@@ -255,6 +260,35 @@ class OverlayService : Service() {
         windowManager.addView(panel, panelLayoutParams)
     }
 
+    private fun showAnalyzingPanel() {
+        hidePanel()
+
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(
+                PANEL_PADDING_DP.dpToPx(this@OverlayService),
+                PANEL_PADDING_DP.dpToPx(this@OverlayService),
+                PANEL_PADDING_DP.dpToPx(this@OverlayService),
+                PANEL_PADDING_DP.dpToPx(this@OverlayService)
+            )
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                cornerRadius = 16.dpToPx(this@OverlayService).toFloat()
+            }
+
+            addView(TextView(this@OverlayService).apply {
+                text = "正在分析对话…"
+                textSize = 14f
+                setTextColor(Color.parseColor("#475569"))
+            })
+        }
+
+        panelView = panel
+
+        panelLayoutParams = newPanelLayoutParams()
+        windowManager.addView(panel, panelLayoutParams)
+    }
+
     private fun newPanelLayoutParams(): WindowManager.LayoutParams {
         return WindowManager.LayoutParams(
             120.dpToPx(this), // Iris spec: 120dp wide rounded card
@@ -421,6 +455,8 @@ class OverlayService : Service() {
         const val ACTION_START_CAPTURE = "com.peekchat.android.START_CAPTURE"
         const val ACTION_STOP_CAPTURE = "com.peekchat.android.STOP_CAPTURE"
         const val ACTION_SHOW_CAPTURING = "com.peekchat.android.SHOW_CAPTURING"
+        const val ACTION_SHOW_ANALYZING = "com.peekchat.android.SHOW_ANALYZING"
+        const val ACTION_HIDE_PANEL = "com.peekchat.android.HIDE_PANEL"
 
         private const val PILL_SIZE_DP = 44
         private const val INITIAL_X_DP = 300

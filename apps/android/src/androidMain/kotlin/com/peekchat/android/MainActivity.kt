@@ -64,6 +64,8 @@ class MainActivity : ComponentActivity() {
                     }
                     if (path != null) {
                         PeekLog.log(TAG, "Screenshot captured: $path")
+                        // Show analyzing panel (OCR + AI processing feedback)
+                        sendOverlayAction(OverlayService.ACTION_SHOW_ANALYZING)
                         // OCR
                         val ocrResult = withContext(Dispatchers.IO) {
                             ocrEngine.recognize(path)
@@ -100,10 +102,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     isCapturing = false
-                    // Bring app to foreground to show the report/result.
+                    // Hide analyzing panel + bring app to foreground to show report.
+                    sendOverlayAction(OverlayService.ACTION_HIDE_PANEL)
                     bringToForeground()
                 } catch (e: Exception) {
                     isCapturing = false
+                    sendOverlayAction(OverlayService.ACTION_HIDE_PANEL)
                     PeekLog.error(TAG, "Capture pipeline failed: ${e.message}", e)
                     bringToForeground()
                 }
@@ -206,6 +210,17 @@ class MainActivity : ComponentActivity() {
 
     private fun startOverlayService() {
         val intent = Intent(this, OverlayService::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+    }
+
+    private fun sendOverlayAction(action: String) {
+        val intent = Intent(this, OverlayService::class.java).apply {
+            this.action = action
+        }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             startForegroundService(intent)
         } else {
