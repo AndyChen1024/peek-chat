@@ -70,17 +70,17 @@ fun SentimentCard(
                     .clip(RoundedCornerShape(4.dp))
             ) {
                 if (total > 0) {
+                    // Use fillMaxWidth(fraction) instead of weight to avoid
+                    // "invalid weight 0.0" crash when a ratio is 0.
                     Row(
                         modifier = Modifier
-                            .weight(positiveRatio)
-                            .fillMaxWidth()
+                            .fillMaxWidth(positiveRatio)
                             .height(8.dp)
                             .background(SemanticSentimentPositive)
                     ) {}
                     Row(
                         modifier = Modifier
-                            .weight(negativeRatio)
-                            .fillMaxWidth()
+                            .fillMaxWidth(negativeRatio)
                             .height(8.dp)
                             .background(SemanticSentimentNegative)
                     ) {}
