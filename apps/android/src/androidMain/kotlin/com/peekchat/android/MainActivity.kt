@@ -22,8 +22,6 @@ import com.peekchat.model.OcrResult
 import com.peekchat.model.Speaker
 import com.peekchat.ocr.BubbleClassifier
 import com.peekchat.ocr.MlKitOcrEngine
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,7 +34,6 @@ class MainActivity : ComponentActivity() {
     private val bubbleClassifier = BubbleClassifier()
     private val aiProvider by lazy {
         DeepSeekProvider(
-            httpClient = HttpClient(OkHttp),
             apiKey = BuildConfig.DEEPSEEK_API_KEY
         )
     }

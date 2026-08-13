@@ -4,6 +4,8 @@ import com.peekchat.model.AnalysisReport
 import com.peekchat.model.Conversation
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -11,6 +13,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -25,7 +28,6 @@ import kotlinx.serialization.json.decodeFromJsonElement
  * 3. kotlinx.serialization parse → fallback to error AnalysisReport
  */
 class DeepSeekProvider(
-    private val httpClient: HttpClient,
     private val apiKey: String,
     private val baseUrl: String = "https://api.deepseek.com"
 ) : AiProvider {
@@ -33,6 +35,12 @@ class DeepSeekProvider(
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
+    }
+
+    private val httpClient = HttpClient(OkHttp) {
+        install(ContentNegotiation) {
+            json(json)
+        }
     }
 
     override suspend fun analyze(conversation: Conversation): Result<AnalysisReport> {
