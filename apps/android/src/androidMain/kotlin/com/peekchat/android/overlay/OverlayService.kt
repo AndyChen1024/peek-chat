@@ -28,16 +28,18 @@ import com.peekchat.android.MainActivity
 /**
  * 浮窗常驻服务 — 眯聊的核心入口。
  *
- * 两步触发交互（Iris spec）：
- * 1. 眯着 — 屏幕边缘半透明 pill，点击后展开
- * 2. 睁眼 — 展开小面板，含「开始采集」按钮
- * 3. 点「开始采集」→ 请求 MediaProjection 权限 → 采集
+ * 三态交互（Iris spec）：
+ * 1. 眯着 — 屏幕边缘半透明 pill
+ * 2. 睁眼·待命 — FloatStandbyPanel「开始采集」面板（不截图）
+ * 3. 睁眼·采集中 — FloatCapturingPanel「采集中…」+「停止」（截图进行中）
+ *
+ * 关键：待命面板不做任何截图，点「开始采集」才触发 MediaProjection 授权 + 截图。
  */
 class OverlayService : Service() {
 
     private lateinit var windowManager: WindowManager
     private var pillView: View? = null
-    private var capturePanel: View? = null
+    private var panelView: View? = null
     private var pillLayoutParams: WindowManager.LayoutParams? = null
     private var panelLayoutParams: WindowManager.LayoutParams? = null
 
@@ -63,11 +65,19 @@ class OverlayService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        try {
-            showPill()
-        } catch (e: Exception) {
-            stopSelf()
-            return START_NOT_STICKY
+        when (intent?.action) {
+            ACTION_SHOW_CAPTURING -> {
+                // MediaProjection permission granted; show capturing panel.
+                showCapturingPanel()
+            }
+            else -> {
+                try {
+                    showPill()
+                } catch (e: Exception) {
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
+            }
         }
         return START_STICKY
     }
@@ -75,7 +85,7 @@ class OverlayService : Service() {
     override fun onDestroy() {
         isRunning = false
         hidePill()
-        hideCapturePanel()
+        hidePanel()
         super.onDestroy()
     }
 
@@ -129,10 +139,10 @@ class OverlayService : Service() {
         pillView = null
     }
 
-    // ── Capture panel (睁眼态 → 开始采集) ──────────────────────────
+    // ── Panels (睁眼态：待命 / 采集中) ──────────────────────────────
 
-    private fun showCapturePanel() {
-        if (capturePanel != null && capturePanel?.parent != null) return
+    private fun showStandbyPanel() {
+        if (panelView != null && panelView?.parent != null) return
 
         val panel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -147,32 +157,39 @@ class OverlayService : Service() {
                 cornerRadius = 16.dpToPx(this@OverlayService).toFloat()
             }
 
-            // Header row: title + close X
+            // Header: title (采集这段对话) + close ✕
             addView(LinearLayout(this@OverlayService).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
 
                 addView(TextView(this@OverlayService).apply {
-                    text = "眯聊"
+                    text = "采集这段对话"
                     textSize = 14f
                     setTextColor(Color.parseColor("#475569"))
                 })
 
-                // Close button (X), weighted to the right
                 addView(TextView(this@OverlayService).apply {
                     text = "✕"
                     textSize = 16f
                     setTextColor(Color.parseColor("#94A3B8"))
-                    setPadding(
-                        24.dpToPx(this@OverlayService),
-                        0,
-                        0,
-                        0
-                    )
-                    setOnClickListener { hideCapturePanel() }
+                    setPadding(24.dpToPx(this@OverlayService), 0, 0, 0)
+                    setOnClickListener { hidePanel() }
                 })
             })
 
+            // Description
+            addView(TextView(this@OverlayService).apply {
+                text = "滑到你想开始的位置，再点开始"
+                textSize = 11f
+                setTextColor(Color.parseColor("#94A3B8"))
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = 4.dpToPx(this@OverlayService) }
+                layoutParams = lp
+            })
+
+            // Primary button: 开始采集 (brand-700 filled)
             addView(Button(this@OverlayService).apply {
                 text = "开始采集"
                 setBackgroundColor(Color.parseColor("#475569"))
@@ -182,17 +199,65 @@ class OverlayService : Service() {
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply { topMargin = 8.dpToPx(this@OverlayService) }
                 layoutParams = lp
-                setOnClickListener { onStartCapture() }
+                setOnClickListener { onStartCaptureClicked() }
             })
 
-            // Tap anywhere else on the panel (not on buttons) dismisses it.
-            setOnClickListener { hideCapturePanel() }
+            // Tap anywhere else on panel (not on buttons) dismisses to 眯着.
+            setOnClickListener { hidePanel() }
         }
 
-        capturePanel = panel
+        panelView = panel
 
-        panelLayoutParams = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
+        panelLayoutParams = newPanelLayoutParams()
+        windowManager.addView(panel, panelLayoutParams)
+    }
+
+    private fun showCapturingPanel() {
+        hidePanel()
+
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(
+                PANEL_PADDING_DP.dpToPx(this@OverlayService),
+                PANEL_PADDING_DP.dpToPx(this@OverlayService),
+                PANEL_PADDING_DP.dpToPx(this@OverlayService),
+                PANEL_PADDING_DP.dpToPx(this@OverlayService)
+            )
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                cornerRadius = 16.dpToPx(this@OverlayService).toFloat()
+            }
+
+            // Status text
+            addView(TextView(this@OverlayService).apply {
+                text = "采集中…"
+                textSize = 14f
+                setTextColor(Color.parseColor("#475569"))
+            })
+
+            // Stop button (outlined brand-700)
+            addView(Button(this@OverlayService).apply {
+                text = "停止"
+                setBackgroundColor(Color.TRANSPARENT)
+                setTextColor(Color.parseColor("#475569"))
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = 8.dpToPx(this@OverlayService) }
+                layoutParams = lp
+                setOnClickListener { onStopCaptureClicked() }
+            })
+        }
+
+        panelView = panel
+
+        panelLayoutParams = newPanelLayoutParams()
+        windowManager.addView(panel, panelLayoutParams)
+    }
+
+    private fun newPanelLayoutParams(): WindowManager.LayoutParams {
+        return WindowManager.LayoutParams(
+            120.dpToPx(this), // Iris spec: 120dp wide rounded card
             WindowManager.LayoutParams.WRAP_CONTENT,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -205,23 +270,34 @@ class OverlayService : Service() {
         ).apply {
             gravity = Gravity.CENTER
         }
-
-        windowManager.addView(panel, panelLayoutParams)
     }
 
-    private fun hideCapturePanel() {
-        capturePanel?.let { v ->
+    private fun hidePanel() {
+        panelView?.let { v ->
             try { windowManager.removeView(v) } catch (_: IllegalArgumentException) {}
         }
-        capturePanel = null
+        panelView = null
     }
 
-    private fun onStartCapture() {
-        hideCapturePanel()
-        android.util.Log.i("OverlayService", "开始采集 → starting capture flow")
+    private fun onStartCaptureClicked() {
+        // "开始采集" → request MediaProjection permission via MainActivity.
+        // The actual screenshot is delayed until permission granted (capturing panel).
+        hidePanel()
+        android.util.Log.i("OverlayService", "开始采集 → requesting MediaProjection")
         val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             action = ACTION_START_CAPTURE
+        }
+        startActivity(intent)
+    }
+
+    private fun onStopCaptureClicked() {
+        // "停止" → end scroll capture, run OCR+AI on existing screenshots.
+        hidePanel()
+        android.util.Log.i("OverlayService", "停止 → finalize capture")
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            action = ACTION_STOP_CAPTURE
         }
         startActivity(intent)
     }
@@ -264,8 +340,8 @@ class OverlayService : Service() {
                 }
                 MotionEvent.ACTION_UP -> {
                     if (!isDragging) {
-                        // Tap → expand capture panel (do NOT fire MediaProjection yet)
-                        showCapturePanel()
+                        // Tap → expand standby panel (do NOT screenshot yet)
+                        showStandbyPanel()
                     } else {
                         snapToEdge()
                     }
@@ -343,6 +419,8 @@ class OverlayService : Service() {
             private set
 
         const val ACTION_START_CAPTURE = "com.peekchat.android.START_CAPTURE"
+        const val ACTION_STOP_CAPTURE = "com.peekchat.android.STOP_CAPTURE"
+        const val ACTION_SHOW_CAPTURING = "com.peekchat.android.SHOW_CAPTURING"
 
         private const val PILL_SIZE_DP = 44
         private const val INITIAL_X_DP = 300

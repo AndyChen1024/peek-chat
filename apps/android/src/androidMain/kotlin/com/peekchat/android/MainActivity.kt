@@ -160,11 +160,20 @@ class MainActivity : ComponentActivity() {
     // ── Intent handling ────────────────────────────────────────────
 
     private fun handleIntent(intent: Intent?) {
-        if (intent?.action == OverlayService.ACTION_START_CAPTURE) {
-            // Post to next frame: Activity must be fully resumed before
-            // registerForActivityResult launcher can fire.
-            window?.decorView?.post {
-                startCapture()
+        when (intent?.action) {
+            OverlayService.ACTION_START_CAPTURE -> {
+                // Post to next frame: Activity must be fully resumed before
+                // registerForActivityResult launcher can fire.
+                window?.decorView?.post {
+                    startCapture()
+                }
+            }
+            OverlayService.ACTION_STOP_CAPTURE -> {
+                // User pressed 停止 — finalize capture (OCR+AI already ran on
+                // existing screenshots). For now single-shot, this is a no-op
+                // that just returns to app to show the report.
+                PeekLog.log(TAG, "Stop capture → show report")
+                bringToForeground()
             }
         }
     }
