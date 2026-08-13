@@ -147,10 +147,30 @@ class OverlayService : Service() {
                 cornerRadius = 16.dpToPx(this@OverlayService).toFloat()
             }
 
-            addView(TextView(this@OverlayService).apply {
-                text = "眯聊"
-                textSize = 14f
-                setTextColor(Color.parseColor("#475569"))
+            // Header row: title + close X
+            addView(LinearLayout(this@OverlayService).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+
+                addView(TextView(this@OverlayService).apply {
+                    text = "眯聊"
+                    textSize = 14f
+                    setTextColor(Color.parseColor("#475569"))
+                })
+
+                // Close button (X), weighted to the right
+                addView(TextView(this@OverlayService).apply {
+                    text = "✕"
+                    textSize = 16f
+                    setTextColor(Color.parseColor("#94A3B8"))
+                    setPadding(
+                        24.dpToPx(this@OverlayService),
+                        0,
+                        0,
+                        0
+                    )
+                    setOnClickListener { hideCapturePanel() }
+                })
             })
 
             addView(Button(this@OverlayService).apply {
@@ -164,6 +184,9 @@ class OverlayService : Service() {
                 layoutParams = lp
                 setOnClickListener { onStartCapture() }
             })
+
+            // Tap anywhere else on the panel (not on buttons) dismisses it.
+            setOnClickListener { hideCapturePanel() }
         }
 
         capturePanel = panel
